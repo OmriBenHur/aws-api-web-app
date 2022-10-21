@@ -1,0 +1,22 @@
+# "docker-compose -f <compose name>.yaml"
+# "docker-compose up -d" to run in background
+version: "3"
+services:
+    mymongo:
+        image: "mongo"
+        hostname: "mongo"
+        ports:
+            - '27017:27017'
+        entrypoint: ['/usr/bin/mongod', '--bind_ip', '0.0.0.0']
+        restart: always
+
+
+    web_app:
+        build: .
+        depends_on:
+            - mymongo
+        ports:
+            - "80:80"
+        volumes:
+            - ./app/secret.py:/app/secret.py
+        restart: always
