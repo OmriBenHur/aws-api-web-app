@@ -12,7 +12,7 @@ services:
 
 
     web_app:
-        build: .
+        image: "omribenhur/web_app"
         depends_on:
             - mymongo
         ports:
