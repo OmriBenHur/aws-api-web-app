@@ -192,35 +192,118 @@ resource "aws_security_group" "web_app_sg" {
     role = "Allow HTTP Traffic"
   }
 }
+#
+#resource "aws_instance" "ec2_private" {
+#  ami = data.aws_ami.amazon-linux-2.id
+#  #associate_public_ip_address = true
+#  instance_type          = "t2.micro"
+#  key_name               = "terraform"
+#  subnet_id              = aws_subnet.private_subnet_1.id
+#  vpc_security_group_ids = [aws_security_group.web_app_sg.id]
+#  user_data              = file("userdata.sh")
+#  iam_instance_profile   = "ec2_ssm_param"
+#
+#  tags = {
+#    "Name" = "EC2-private"
+#  }
+#
+#}
+#
+#resource "aws_instance" "ec2_public" {
+#  ami                         = data.aws_ami.amazon-linux-2.id
+#  associate_public_ip_address = true
+#  instance_type               = "t2.micro"
+#  key_name                    = "terraform"
+#  subnet_id                   = aws_subnet.public_subnet_1.id
+#  vpc_security_group_ids      = [aws_security_group.web_app_sg.id]
+#  iam_instance_profile        = "ec2_ssm_param"
+#  user_data                   = file("userdata.sh")
+#
+#  tags = {
+#    "Name" = "EC2-PUBLIC"
+#  }
+#
+#}
 
-resource "aws_instance" "ec2_private" {
-  ami = data.aws_ami.amazon-linux-2.id
-  #associate_public_ip_address = true
-  instance_type          = "t2.micro"
-  key_name               = "terraform"
-  subnet_id              = aws_subnet.private_subnet_1.id
-  vpc_security_group_ids = [aws_security_group.web_app_sg.id]
-  user_data              =   file("userdata.sh")
-  iam_instance_profile = "ec2_ssm_param"
+resource "aws_launch_template" "web_application_template" {
+  name                                 = "web_application_template"
+  image_id                             = data.aws_ami.amazon-linux-2.id
+  instance_initiated_shutdown_behavior = "terminate"
+  instance_type                        = "t2.micro"
 
-  tags = {
-    "Name" = "EC2-private"
+  monitoring {
+    enabled = true
   }
 
-}
-
-resource "aws_instance" "ec2_public" {
-  ami = data.aws_ami.amazon-linux-2.id
-  associate_public_ip_address = true
-  instance_type          = "t2.micro"
-  key_name               = "terraform"
-  subnet_id              = aws_subnet.public_subnet_1.id
   vpc_security_group_ids = [aws_security_group.web_app_sg.id]
-  iam_instance_profile = "ec2_ssm_param"
-  user_data = file("userdata.sh")
+  user_data              = base64encode(file("userdata.sh"))
 
-  tags = {
-    "Name" = "EC2-PUBLIC"
+  iam_instance_profile {
+    name = "ec2_ssm_param"
   }
 
+  tags = {
+    "Name" = "web application launch template"
+  }
 }
+
+resource "aws_autoscaling_group" "web_app_ASG" {
+  max_size            = 4
+  min_size            = 2
+  name                = "web_app_ASG"
+  vpc_zone_identifier = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
+  launch_template {
+    id = aws_launch_template.web_application_template.id
+  }
+}
+
+resource "aws_autoscaling_policy" "scale_up_policy" {
+  autoscaling_group_name = aws_autoscaling_group.web_app_ASG.name
+  name                   = "scale up policy"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = 1
+  cooldown               = 150
+}
+
+resource "aws_autoscaling_policy" "scale_down_policy" {
+  autoscaling_group_name = aws_autoscaling_group.web_app_ASG.name
+  name                   = "scale down policy"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = -1
+  cooldown               = 150
+}
+resource "aws_cloudwatch_metric_alarm" "cpu_overload" {
+  alarm_name          = "cpu_overload"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "80"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_app_ASG.name
+  }
+  alarm_description = "This metric monitors ec2 cpu utilization and scales it down if cpu load is iver 80%"
+  alarm_actions     = [aws_autoscaling_policy.scale_down_policy.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_underload" {
+  alarm_name          = "cpu_underload"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "35"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_app_ASG.name
+  }
+  alarm_description = "This metric monitors ec2 cpu utilization and scales it up if load is under 35%"
+  alarm_actions     = [aws_autoscaling_policy.scale_up_policy.arn]
+}
+
+#resource "aws_applic" "" {}
