@@ -4,9 +4,9 @@ data "aws_availability_zones" "available_zones" {
 }
 
 resource "aws_vpc" "web_app_vpc" {
-  cidr_block = var.vpc_cidr_def
+  cidr_block           = var.vpc_cidr_def
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
   tags = {
     Name = "Web App VPC"
   }
@@ -55,7 +55,7 @@ resource "aws_nat_gateway" "NAT_gateway" {
   count         = 2
   subnet_id     = element(aws_subnet.public.*.id, count.index)
   allocation_id = element(aws_eip.EIP.*.id, count.index)
-  tags          = {
+  tags = {
     Name = "NAT Gateway"
   }
 }
@@ -75,4 +75,11 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
 
+}
+
+resource "aws_vpc_endpoint" "secret_endpoint" {
+  service_name       = "com.amazonaws.us-west-2.secretsmanager"
+  vpc_id             = aws_vpc.web_app_vpc.id
+  security_group_ids = [aws_security_group.vpce_sg.id]
+  vpc_endpoint_type  = "Interface"
 }
