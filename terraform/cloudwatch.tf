@@ -1,3 +1,5 @@
+# cloudwatch to monitor auto scaling group instances cpu load
+# and activate scale out policy if load in over 80%
 resource "aws_cloudwatch_metric_alarm" "cpu_overload" {
   alarm_name          = "cpu_overload"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -15,6 +17,9 @@ resource "aws_cloudwatch_metric_alarm" "cpu_overload" {
   alarm_actions     = [aws_autoscaling_policy.scale_down_policy.arn]
 }
 
+
+# cloudwatch to monitor auto scaling group instances cpu load
+# and activate scale in policy if cpu load is over 35%
 resource "aws_cloudwatch_metric_alarm" "cpu_underload" {
   alarm_name          = "cpu_underload"
   comparison_operator = "LessThanOrEqualToThreshold"

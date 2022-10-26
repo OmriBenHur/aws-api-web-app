@@ -1,3 +1,4 @@
+# web app security group to allow traffic from alb
 resource "aws_security_group" "web_app_sg" {
   name        = "web_app_sg"
   description = "Allow lb inbound traffic"
@@ -10,14 +11,14 @@ resource "aws_security_group" "web_app_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.lb_sg.id]
   }
-
-  ingress {
-    description     = "Allow ssh Traffic"
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.lb_sg.id]
-  }
+#
+#  ingress {
+#    description     = "Allow ssh Traffic"
+#    from_port       = 22
+#    to_port         = 22
+#    protocol        = "tcp"
+#    security_groups = [aws_security_group.lb_sg.id]
+#  }
   egress {
     from_port        = 0
     to_port          = 0
@@ -30,6 +31,8 @@ resource "aws_security_group" "web_app_sg" {
     role = "Allow lb Traffic"
   }
 }
+
+# application load balancer security group to allow traffic from the internet
 resource "aws_security_group" "lb_sg" {
   name        = "lb_sg"
   description = "Allow HTTP inbound traffic"
@@ -42,14 +45,14 @@ resource "aws_security_group" "lb_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  ingress {
-    description = "Allow ssh Traffic"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#
+#  ingress {
+#    description = "Allow ssh Traffic"
+#    from_port   = 22
+#    to_port     = 22
+#    protocol    = "tcp"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
   egress {
     from_port        = 0
     to_port          = 0
@@ -62,6 +65,9 @@ resource "aws_security_group" "lb_sg" {
     role = "Allow HTTP Traffic"
   }
 }
+
+# vpc endpoint security group to allow https traffic from ec2 instances
+# to communicate with secrets manager
 resource "aws_security_group" "vpce_sg" {
   name        = "vpc-endpoint-sg"
   description = "Allow traffic for secrets manager"
@@ -88,6 +94,8 @@ resource "aws_security_group" "vpce_sg" {
   }
 }
 
+# iam role for ec2 to allow the secrets manager : get secret value operation
+# this is required for the web app container to function
 resource "aws_iam_role" "ec2-to-sec-man" {
   name               = "ec2_secret_manager"
   assume_role_policy = data.aws_iam_policy_document.instance-assume-role-policy.json
@@ -108,6 +116,9 @@ resource "aws_iam_role" "ec2-to-sec-man" {
     })
   }
 }
+
+# creating iam instance profile from iam role to use in the launch template
+# to be used with ASG. (regular roles cannot attach to launch templates or instances)
 resource "aws_iam_instance_profile" "ec2_role_profile" {
   name = "ec2_secrets_manager"
   role = aws_iam_role.ec2-to-sec-man.name

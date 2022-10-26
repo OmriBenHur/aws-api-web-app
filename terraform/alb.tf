@@ -1,3 +1,4 @@
+# application load balancer to be deployed in public subnets
 resource "aws_lb" "web_ALB" {
   name               = "web-ALB"
   load_balancer_type = "application"
@@ -7,7 +8,7 @@ resource "aws_lb" "web_ALB" {
 
 }
 
-
+# application load balancer target group
 resource "aws_lb_target_group" "app_ALB_target" {
   name        = "app-ALB-target"
   port        = 80
@@ -24,7 +25,7 @@ resource "aws_lb_target_group" "app_ALB_target" {
   }
 }
 
-
+# application load balancer listener to forward comm to instances
 resource "aws_lb_listener" "web_app_listener" {
   load_balancer_arn = aws_lb.web_ALB.arn
   protocol          = "HTTP"
