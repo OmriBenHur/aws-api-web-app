@@ -1,4 +1,6 @@
 prerequisites:
+have git installed on your local machine.
+have terraform installed on your local machine.
 sign up to tmdb.com
 (https://www.themoviedb.org/) and create an api key.
 next, create an aws secrets manager secret with your prefered name, with the value of the tmdb api key.
@@ -10,5 +12,8 @@ terraform init
 terraform apply
 and the application is availale.
 you can interact with it through the alb dns record (a record).
+
+project architecture:
+
 
 ![AWS web app architecture  - AWS (2019) horizontal framework](https://user-images.githubusercontent.com/110596448/198000793-db40248e-6cc0-4dd8-8c3a-1a0a58770217.png)
