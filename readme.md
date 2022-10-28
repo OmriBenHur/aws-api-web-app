@@ -16,4 +16,4 @@ you can interact with it through the alb dns record (a record).
 project architecture:
 
 
-![AWS web app architecture  - AWS (2019) horizontal framework](https://user-images.githubusercontent.com/110596448/198000793-db40248e-6cc0-4dd8-8c3a-1a0a58770217.png)
+![AWS web app architecture  - AWS (2019) horizontal framework (1)](https://user-images.githubusercontent.com/110596448/198708202-e63ae2cd-8fdf-41f4-aff8-1c377c436d94.png)
