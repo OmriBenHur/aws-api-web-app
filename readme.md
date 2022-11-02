@@ -2,6 +2,8 @@ prerequisites:
 
 have git installed on your local machine.
 
+have a working AWS account with access key and secret key.
+
 have terraform installed on your local machine.
 
 sign up to tmdb.com(https://www.themoviedb.org/) and create an api key.
