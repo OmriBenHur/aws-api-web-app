@@ -4,7 +4,6 @@ resource "aws_launch_template" "web_application_template" {
   image_id                             = data.aws_ami.amazon-linux-2.id
   instance_initiated_shutdown_behavior = "terminate"
   instance_type                        = "t2.micro"
-  key_name                             = "lab-key"
 
   private_dns_name_options {
     enable_resource_name_dns_a_record = true

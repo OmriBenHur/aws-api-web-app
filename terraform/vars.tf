@@ -41,3 +41,9 @@ variable "app_count" {
   type    = number
   default = 1
 }
+
+variable "secret_arn" {
+  description = "arn for the tmdb api key secret previously created"
+  type        = string
+  default     = ""
+}

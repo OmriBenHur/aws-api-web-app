@@ -11,14 +11,7 @@ resource "aws_security_group" "web_app_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.lb_sg.id]
   }
-#
-#  ingress {
-#    description     = "Allow ssh Traffic"
-#    from_port       = 22
-#    to_port         = 22
-#    protocol        = "tcp"
-#    security_groups = [aws_security_group.lb_sg.id]
-#  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -45,14 +38,7 @@ resource "aws_security_group" "lb_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-#
-#  ingress {
-#    description = "Allow ssh Traffic"
-#    from_port   = 22
-#    to_port     = 22
-#    protocol    = "tcp"
-#    cidr_blocks = ["0.0.0.0/0"]
-#  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -110,7 +96,7 @@ resource "aws_iam_role" "ec2-to-sec-man" {
           "Sid" : "VisualEditor0",
           "Effect" : "Allow",
           "Action" : "secretsmanager:GetSecretValue",
-          "Resource" : "arn:aws:secretsmanager:us-west-2:967980209513:secret:web-app/api-key-qE9pu3"
+          "Resource" : var.secret_arn
         }
       ]
     })
